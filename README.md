@@ -3,7 +3,7 @@ Swarm から cURL 投げて各種SNSへ自動投稿するための PHP スクリ
 
 # 使い方
 1. https://location.foursquare.com/log-in/ より、アプリケーションキーとアプリケーションシークレットを入手します。
-1. oauth.php に必要事項を設定し、アクセストークンを取得します。
+1. https://syncer.jp/foursquare-api-matome あたりを参考にして、アクセストークンを取得します。
 1. run.php にアクセストークンとその他諸々を設定します。
 1. run.php を一定間隔毎に実行します。
 1. Enjoy!
