@@ -1,13 +1,24 @@
 <?php
 
+	# フォルダパス
+	$folder = 'ここにフルパス(/で終わる)を記述';
+
+	# ライブラリ読み込み
+	require $folder . 'vendor/autoload.php';
+	use Abraham\TwitterOAuth\TwitterOAuth;
+
 	# 投稿の有無 (投稿: true)
 	$posting = true;
+	$posting_twtr  = false;
 	$posting_msky  = true;
 	$posting_nostr = false;
 	$posting_bsky  = false;
 
-	# フォルダパス
-	$folder = 'ここにフルパスを記述';
+	# 旧Twitter API Key
+	$twtr_apikey      = 'API Key (Consumer Key)';
+	$twtr_apisecret   = 'API Secret (Consumer Secret)';
+	$twtr_accesstoken = 'OAuth Access Token';
+	$twtr_tokensecret = 'OAuth Access Token Secret';
 
 	# 設定
 	$userid = 'Foursquare の設定ページに書かれているユーザーID (数字) を記述';
@@ -112,8 +123,26 @@
 	# 投稿
 	if ($posting == true) {
 
+		# 旧Twitter
+		if ($posting_twtr == true) {
+
+			if (!empty($post_data)) {
+
+				$data = [
+					'text' => $post_data
+				];
+
+				$twtr_connection = new TwitterOAuth($twtr_apikey, $twtr_apisecret, $twtr_accesstoken, $twtr_tokensecret);
+
+				$twtr_connection->setApiVersion("2");
+				$twtr_result = $twtr_connection->post('tweets', $data, true);
+
+			}
+
+		}
+
 		# Misskey
-		# サーバーとアクセストークンを設定するだけで動きます
+		# misskey.io の場合、サーバーとアクセストークンを設定するだけで動きます
 		if ($posting_msky == true) {
 
 			if (!empty($post_data)) {
@@ -150,7 +179,7 @@
 			if (!empty($post_data)) {
 
 				$data2 = [
-						'tweet' => $post_data
+					'tweet' => $post_data
 				];
 
 				$json_data2 = json_encode($data2);
@@ -179,7 +208,7 @@
 			if (!empty($post_data)) {
 
 				$data3 = [
-						'tweet' => $post_data
+					'tweet' => $post_data
 				];
 
 				$json_data3 = json_encode($data3);
