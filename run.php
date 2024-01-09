@@ -179,7 +179,7 @@
 			if (!empty($post_data)) {
 
 				$data2 = [
-					'tweet' => $post_data
+					'note' => $post_data
 				];
 
 				$json_data2 = json_encode($data2);
@@ -208,7 +208,7 @@
 			if (!empty($post_data)) {
 
 				$data3 = [
-					'tweet' => $post_data
+					'note' => $post_data
 				];
 
 				$json_data3 = json_encode($data3);
