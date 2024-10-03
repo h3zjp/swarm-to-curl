@@ -1,5 +1,8 @@
 <?php
 
+	# エラー表示
+	ini_set( 'display_errors', 1 );
+
 	# フォルダパス
 	$folder = 'ここにフルパス(/で終わる)を記述';
 
@@ -9,10 +12,11 @@
 
 	# 投稿の有無 (投稿: true)
 	$posting = true;
-	$posting_twtr  = false;
-	$posting_msky  = true;
-	$posting_nostr = false;
-	$posting_bsky  = false;
+	$posting_twtr    = false;
+	$posting_msky    = false;
+	$posting_nostr   = false;
+	$posting_bsky    = false;
+	$posting_concrnt = false;
 
 	# 旧Twitter API Key
 	$twtr_apikey      = 'API Key (Consumer Key)';
@@ -57,16 +61,15 @@
 	$now_checkin[1] = $result['response']['checkins']['count'];
 	# ベニュー名
 	$now_checkin[2] = $result['response']['checkins']['items'][0]['venue']['name'];
-	# プライベートかどうか
-	if ($result['response']['checkins']['items'][0]['private'] == true) {
 
-		$now_checkin[3] = 1;
-
-	 } else {
-
-		$now_checkin[3] = 0;
-
-	}
+	# 都道府県
+	$now_checkin[3] = $result['response']['checkins']['items'][0]['venue']['location']['state'];
+	# 市区町村
+	$now_checkin[4] = $result['response']['checkins']['items'][0]['venue']['location']['city'];
+	# 住所
+	$now_checkin[5] = $result['response']['checkins']['items'][0]['venue']['location']['address'];
+	# 国名
+	$now_checkin[6] = $result['response']['checkins']['items'][0]['venue']['location']['cc'];
 
 	# 共有用リンク取得
 	$api2 = 'https://api.foursquare.com/v2/checkins/' . $now_checkin[0] . '?v=20220722&oauth_token=' . $token;
@@ -81,13 +84,25 @@
 	curl_close($ch);
 	$json2 = mb_convert_encoding($response2, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN');
 	$result2 = json_decode($json2, true);
-	$now_checkin[4] = $result2['response']['checkin']['checkinShortUrl'];
+	$now_checkin[7] = $result2['response']['checkin']['checkinShortUrl'];
+
+	# プライベートかどうか
+	if ($result['response']['checkins']['items'][0]['private'] == true) {
+
+		$now_checkin[8] = 1;
+
+	 } else {
+
+		$now_checkin[8] = 0;
+
+	}
 
 	# ファイル書き込み
+	# チェックインID, チェックイン数, ベニュー名, 都道府県, 市区町村, 住所, 国名, 共有用リンク, プライベートかどうか
 	if (!empty($result['response'])) {
     	$filew = fopen($filename, 'w');
     	$req_date = date("Y-m-d H:i T", $_SERVER['REQUEST_TIME']);
-    	$wcsv = array($req_date, $now_checkin[0], $now_checkin[1], $now_checkin[2], $now_checkin[3], $now_checkin[4]);
+    	$wcsv = array($req_date, $now_checkin[0], $now_checkin[1], $now_checkin[2], $now_checkin[3], $now_checkin[4], $now_checkin[5], $now_checkin[6], $now_checkin[7], $now_checkin[8]);
     	fputcsv($filew, $wcsv);
     	fclose($filew);
 	}
@@ -95,28 +110,56 @@
 	# 投稿データ作成
 	if (($checkin_data[0] != $now_checkin[0]) && isset($now_checkin[0])) {
 
-		if ($now_checkin[3] == 0) {
+		if ($now_checkin[8] == 0) {
 
 			$post_arr = array();
 			$post_arr[] = "I'm at ";
 			$post_arr[] = $now_checkin[2];
+			$post_arr[] = " in ";
+			$post_arr[] = $now_checkin[3] . $now_checkin[4] . $now_checkin[5];
+			$post_arr[] = " (";
+			$post_arr[] = $now_checkin[6];
+			$post_arr[] = ")\n";
+			$post_arr[] = $now_checkin[7];
 			$post_arr[] = "\n";
-			$post_arr[] = $now_checkin[4];
-			$post_arr[] = "\n";
-			$post_arr[] = "Total Checkin Count: ";
+			$post_arr[] = "Total Checkin Count：";
 			$post_arr[] = $now_checkin[1];
 
-			$post_data = implode($post_arr);
+			$post_arr1 = $post_arr;
+			$post_arr2 = $post_arr;
+			$post_arr3 = $post_arr;
+			$post_arr4 = $post_arr;
+			$post_arr5 = $post_arr;
+
+			$post_arr1[] = "\n#Swarm_to_X";
+			$post_arr2[] = "\n#Swarm_to_Misskey";
+			$post_arr3[] = "\n#Swarm_to_Nostr";
+			$post_arr4[] = "\n#Swarm_to_Bluesky";
+			$post_arr5[] = "\n#Swarm_to_Concrnt";
+
+			$post_data1 = implode($post_arr1);
+			$post_data2 = implode($post_arr2);
+			$post_data3 = implode($post_arr3);
+			$post_data4 = implode($post_arr4);
+			$post_data5 = implode($post_arr5);
 
 		} else {
 
-			$post_data == "";
+			$post_data1 == "";
+			$post_data2 == "";
+			$post_data3 == "";
+			$post_data4 == "";
+			$post_data5 == "";
 
 		}
 
 	} else {
 
-		$post_data == "";
+		$post_data1 = "";
+		$post_data2 = "";
+		$post_data3 = "";
+		$post_data4 = "";
+		$post_data5 = "";
 
 	}
 
@@ -126,16 +169,11 @@
 		# 旧Twitter
 		if ($posting_twtr == true) {
 
-			if (!empty($post_data)) {
-
-				$data = [
-					'text' => $post_data
-				];
+			if (!empty($post_data1)) {
 
 				$twtr_connection = new TwitterOAuth($twtr_apikey, $twtr_apisecret, $twtr_accesstoken, $twtr_tokensecret);
-
-				$twtr_connection->setApiVersion("2");
-				$twtr_result = $twtr_connection->post('tweets', $data, true);
+				$twtr_connection->setApiVersion('2');
+				$twtr_result = $twtr_connection->post('tweets', ['text' => $post_data1], ['jsonPayload' => true]);
 
 			}
 
@@ -145,11 +183,11 @@
 		# misskey.io の場合、サーバーとアクセストークンを設定するだけで動きます
 		if ($posting_msky == true) {
 
-			if (!empty($post_data)) {
+			if (!empty($post_data2)) {
 
 				$data = [
 					'i' => 'Misskey Access Token',
-					'text' => $post_data,
+					'text' => $post_data2,
 					'visibility' => 'public'
 				];
 
@@ -176,24 +214,24 @@
 		# https://github.com/mattn/algia を使う前提のサンプル
 		if ($posting_nostr == true) {
 
-			if (!empty($post_data)) {
+			if (!empty($post_data3)) {
 
-				$data2 = [
-					'note' => $post_data
+				$data = [
+					'note' => $post_data3
 				];
 
-				$json_data2 = json_encode($data2);
+				$json_data = json_encode($data);
 
-				$put_url2 = 'http://127.0.0.1:10000/post';
+				$put_url = 'http://127.0.0.1:10000/post';
 
-				$ch = curl_init($put_url2);
+				$ch = curl_init($put_url);
 				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 				curl_setopt($ch, CURLOPT_VERBOSE, true);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_POST, true);
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data2);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
 				curl_exec($ch);
 				curl_close($ch);
 
@@ -205,24 +243,53 @@
 		# https://github.com/mattn/bsky を使う前提のサンプル
 		if ($posting_bsky == true) {
 
-			if (!empty($post_data)) {
+			if (!empty($post_data4)) {
 
-				$data3 = [
-					'note' => $post_data
+				$data = [
+					'note' => $post_data4
 				];
 
-				$json_data3 = json_encode($data3);
+				$json_data = json_encode($data);
 
-				$put_url3 = 'http://127.0.0.1:10010/post';
+				$put_url = 'http://127.0.0.1:10010/post';
 
-				$ch = curl_init($put_url3);
+				$ch = curl_init($put_url);
 				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 				curl_setopt($ch, CURLOPT_VERBOSE, true);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_POST, true);
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data3);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
+				curl_exec($ch);
+				curl_close($ch);
+
+			}
+
+		}
+
+		# Concurrent
+		# https://github.com/rassi0429/concurrent-webhook を使う前提のサンプル
+		if ($posting_concrnt == true) {
+
+			if (!empty($post_data5)) {
+
+				$data = [
+					'text' => $post_data5
+				];
+
+				$json_data = json_encode($data);
+
+				$put_url = 'http://127.0.0.1:10020/post';
+
+				$ch = curl_init($put_url);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+				curl_setopt($ch, CURLOPT_VERBOSE, true);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_POST, true);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
 				curl_exec($ch);
 				curl_close($ch);
 
