@@ -87,7 +87,7 @@
 	$now_checkin[7] = $result2['response']['checkin']['checkinShortUrl'];
 
 	# プライベートかどうか
-	if ($result['response']['checkins']['items'][0]['private'] == true) {
+	if (isset($result['response']['checkins']['items'][0]['private'])) {
 
 		$now_checkin[8] = 1;
 
@@ -145,11 +145,11 @@
 
 		} else {
 
-			$post_data1 == "";
-			$post_data2 == "";
-			$post_data3 == "";
-			$post_data4 == "";
-			$post_data5 == "";
+			$post_data1 = "";
+			$post_data2 = "";
+			$post_data3 = "";
+			$post_data4 = "";
+			$post_data5 = "";
 
 		}
 
