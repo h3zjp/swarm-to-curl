@@ -1,6 +1,7 @@
 # Swarm to cURL
-Swarm から cURL 投げて各種SNSへ自動投稿するための PHP スクリプト
-Swarm のチェックイン情報を各種SNSへ完全自動で投げることができる
+Swarm から cURL 投げて各種SNSへ自動投稿するための PHP スクリプト<br>
+Swarm アプリを使っていつも通りチェックインするだけで、各種SNSへ完全自動で投稿することができる<br>
+(非公開のチェックインは投稿されない)
 
 # 使い方
 1. https://location.foursquare.com/log-in/ より、アプリケーションキーとアプリケーションシークレットを入手します。
