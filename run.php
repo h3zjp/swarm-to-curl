@@ -29,7 +29,7 @@
 	$token = 'アクセストークンを記述';
 
 	# API Endpoint
-	$api = 'https://api.foursquare.com/v2/users/' . $userid . '/checkins?v=20220722&oauth_token=' . $token;
+	$api = 'https://api.foursquare.com/v2/users/' . $userid . '/checkins?v=20240109&oauth_token=' . $token;
 
 	# 取得
 	$ch = curl_init($api);
@@ -72,7 +72,7 @@
 	$now_checkin[6] = $result['response']['checkins']['items'][0]['venue']['location']['cc'];
 
 	# 共有用リンク取得
-	$api2 = 'https://api.foursquare.com/v2/checkins/' . $now_checkin[0] . '?v=20220722&oauth_token=' . $token;
+	$api2 = 'https://api.foursquare.com/v2/checkins/' . $now_checkin[0] . '?v=20240109&oauth_token=' . $token;
 	$ch = curl_init($api2);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
 	curl_setopt($ch, CURLOPT_USERAGENT, 'Foursquare_API');
